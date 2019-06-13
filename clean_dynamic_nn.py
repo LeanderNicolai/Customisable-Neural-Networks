@@ -19,7 +19,7 @@ def choose_dataset():
 
     For Make Moons:     Press 1
     For MNIST:          Press 2
-
+    To import your own Dataset: Press 3
 
     '''))
     if choice == 1:
@@ -183,11 +183,8 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
         bias_shapes[0] = new_biases[0]
         all_weights_1.reverse()
         to_shape = outputs[0].T.shape[0]
-        print(outputs[0].shape)
         ypred = outputs[0].T.reshape(to_shape)
         ypred_int = ypred.round()
-        print('ytrue shape is: ', ytrue.shape)
-        print('ypred shape is: ', ypred.shape)
         desc_loss = loss(ytrue, ypred).sum()
         print(ypred_int)
         acc = sklearn.metrics.accuracy_score(ytrue, ypred_int)
@@ -210,6 +207,7 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
             if file.endswith(".png"):
                 print("removed", file)
                 os.remove(file)
+    print(f"Kernel Density Plot saved as: output{file_ext}.gif")
     return all_weights_1, bias_shapes
 
 
@@ -219,16 +217,23 @@ def create_train(X, ytrue, choice, KDP_FLAG):
     all_weights_1, bias_shapes, X_T, ytrue = create_network(X, ytrue)
     weights, biases = train_network(epochs, X_T, ytrue, all_weights_1,
                                     bias_shapes, choice, KDP_FLAG)
+
     return weights, biases, X_T
 
 
 def predict(X_T, all_weights, bias_shapes):
-    output = feed_forward(X_T, all_weights, bias_shapes)
-    return output
+    outputs = feed_forward(X_T, all_weights, bias_shapes)
+    outputs.reverse()
+    to_shape = outputs[0].T.shape[0]
+    ypred = outputs[0].T.reshape(to_shape)
+    ypred_int = ypred.round()
+    return outputs, ypred_int
 
 
 X, ytrue, Xtest, ytest, choice, KDP_FLAG = choose_dataset()
 
 weights, biases, X_T = create_train(X, ytrue, choice, KDP_FLAG)
 
-predict(X_T, weights, biases)
+outputs, ypred_int = predict(X_T, weights, biases)
+
+print("Final Predictions are: ", ypred_int)
