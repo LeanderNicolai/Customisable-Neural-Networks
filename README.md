@@ -27,4 +27,4 @@ So far the layers in the network are only dense layers, using a Sigmoid as an ac
 10. Enter how many **Nodes** you want for each layer
 11. Take a look at the network you've created. It's beautiful!
 12. Press enter to start training!
-13.
+13. Once you are done training you can make predictions with the weights and biases generated from the training cycle.
