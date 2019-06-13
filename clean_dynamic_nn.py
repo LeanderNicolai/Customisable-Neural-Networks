@@ -207,7 +207,7 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
             if file.endswith(".png"):
                 print("removed", file)
                 os.remove(file)
-    print(f"Kernel Density Plot saved as: output{file_ext}.gif")
+        print(f"Kernel Density Plot saved as: output{file_ext}.gif")
     return all_weights_1, bias_shapes
 
 
