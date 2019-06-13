@@ -7,7 +7,7 @@ The program runs mainly on NumPy and the network is built from scratch, using th
 
 This will look something like this:
 
-<img align="center" width="400" src="https://github.com/LeanderNicolai/Customisable_Neural_Networks/blob/master/NN_Vis.png">     <img align="center" width="400"  src="https://github.com/LeanderNicolai/Customisable_Neural_Networks/blob/master/NN_Vis.png">
+<img align="center" width="400"  src="https://github.com/LeanderNicolai/Customisable_Neural_Networks/blob/master/NN_Vis.png">
 
 So far the layers in the network are only dense layers, using a Sigmoid as an activation function. Convolutional Layers and a ReLu activation function are to be implemented in the future.
 
