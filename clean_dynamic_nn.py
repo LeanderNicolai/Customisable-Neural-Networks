@@ -19,10 +19,20 @@ def choose_dataset():
 
     For Make Moons:     Press 1
     For MNIST:          Press 2
+
+
     '''))
     if choice == 1:
         X, ytrue = make_moons(n_samples=200, noise=0.2, random_state=42)
         Xtest, ytest = make_moons(n_samples=200, noise=0.2, random_state=42)
+        make_kde = True
+        KDP_INPUT = input('Do you want a KDP Plot?  Y / N  ')
+        KDP_INPUT = KDP_INPUT.upper()
+        if 'Y' in KDP_INPUT:
+            KDP_FLAG = True
+            print("KDP Flag set to True")
+        else:
+            KDP_FLAG = False
     else:
         (xtrain, ytrain), (xtest, ytest) = mnist.load_data()
         X = xtrain.reshape(60000, 784)
@@ -31,7 +41,24 @@ def choose_dataset():
         Xtest = xtest.reshape(10000, 784)
         Xtest = Xtest[1000:1500, :]
         ytest = ytrain[1000:1500]
-    return X, ytrue, Xtest, ytest, choice
+        KDP_FLAG = False
+    return X, ytrue, Xtest, ytest, choice, KDP_FLAG
+
+
+def KDP(ypred, i, X, desc_loss, acc):
+    idx_1 = np.where(ypred == 1)
+    idx_0 = np.where(ypred == 0)
+    zero_y_one = X[:, 0][idx_1]
+    zero_y_two = X[:, 0][idx_0]
+    one_y_one = X[:, 1][idx_1]
+    one_y_two = X[:, 1][idx_0]
+    plt.figure()
+    sns.kdeplot(zero_y_one, one_y_one, shade=False, kde=True)
+    sns.kdeplot(zero_y_two, one_y_two, shade=False, kde=True)
+    plot = plt.scatter(X[:, 0], X[:, 1], c=ypred)
+    plt.title(f'Epoch: {i} Loss: {desc_loss:.2f} Accuracy:  {acc}')
+    filename = 'lifeexp_{}.png'.format(i)
+    return filename
 
 
 def shape_creation(X, y):
@@ -50,7 +77,7 @@ def shape_creation(X, y):
         layer_nc.append(final_nc)
     else:
         layer_nc = [4, 2, 5, 3]
-        final_nc = int(input('How many nodes should the output layer have?'))
+        final_nc = int(input('How many nodes should the output layer have?    '))
         layer_nc.append(final_nc)
     i = 0
     weight_shapes = []
@@ -145,14 +172,16 @@ def create_network(X, y):
     return all_weights_1, bias_shapes, X_T, ytrue
 
 
-def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice):
+def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FLAG):
+    images = []
+    cwd = os.getcwd()
     for i in range(epochs):
         outputs = feed_forward(X_T, all_weights_1, bias_shapes)
+        outputs_cp = outputs
         all_weights_1, bias_shapes, new_biases = back_prop(
             outputs, ytrue, all_weights_1, bias_shapes)
         bias_shapes[0] = new_biases[0]
         all_weights_1.reverse()
-        # if choice == 1
         to_shape = outputs[0].T.shape[0]
         print(outputs[0].shape)
         ypred = outputs[0].T.reshape(to_shape)
@@ -164,14 +193,32 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice):
         acc = sklearn.metrics.accuracy_score(ytrue, ypred_int)
         print('loss is:  ', desc_loss)
         print('accuracy is:  ', acc)
+        X = X_T.T
+        print(X.shape)
+        print(type(ypred_int))
+        print(ypred_int)
+        if KDP_FLAG:
+            filename = KDP(ypred_int, i, X, desc_loss, acc)
+            file_loc = cwd + '/pngs/' + filename
+            plt.savefig(filename)
+            images.append(imageio.imread(filename))
+    if KDP_FLAG:
+        time = str(datetime.datetime.now())
+        file_ext = time[-2:]
+        imageio.mimsave(f'output{file_ext}.gif', images, fps=15)
+        for file in os.listdir(cwd):
+            if file.endswith(".png"):
+                print("removed", file)
+                os.remove(file)
     return all_weights_1, bias_shapes
 
 
-def create_train(X, ytrue, choice):
+def create_train(X, ytrue, choice, KDP_FLAG):
     epochs = int(input('How many iterations would you like to run?    '))
     X_T = X.T
     all_weights_1, bias_shapes, X_T, ytrue = create_network(X, ytrue)
-    weights, biases = train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice)
+    weights, biases = train_network(epochs, X_T, ytrue, all_weights_1,
+                                    bias_shapes, choice, KDP_FLAG)
     return weights, biases, X_T
 
 
@@ -180,8 +227,8 @@ def predict(X_T, all_weights, bias_shapes):
     return output
 
 
-X, ytrue, Xtest, ytest, choice = choose_dataset()
+X, ytrue, Xtest, ytest, choice, KDP_FLAG = choose_dataset()
 
-weights, biases, X_T = create_train(X, ytrue, choice)
+weights, biases, X_T = create_train(X, ytrue, choice, KDP_FLAG)
 
 predict(X_T, weights, biases)
