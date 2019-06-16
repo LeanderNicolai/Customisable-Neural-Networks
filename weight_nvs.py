@@ -1,5 +1,6 @@
 from matplotlib import pyplot
 from math import cos, sin, atan
+import numpy as np
 
 
 class Neuron():
@@ -13,14 +14,16 @@ class Neuron():
 
 
 class Layer():
-    def __init__(self, network, number_of_neurons, number_of_neurons_in_widest_layer):
+    def __init__(self, network, number_of_neurons, number_of_neurons_in_widest_layer, weights):
         self.vertical_distance_between_layers = 6
         self.horizontal_distance_between_neurons = 2
         self.neuron_radius = 0.5
         self.number_of_neurons_in_widest_layer = number_of_neurons_in_widest_layer
+        self.weights = weights
         self.previous_layer = self.__get_previous_layer(network)
         self.y = self.__calculate_layer_y_position()
         self.neurons = self.__intialise_neurons(number_of_neurons)
+        self.layer_id = self.__get_id(network)
 
     def __intialise_neurons(self, number_of_neurons):
         neurons = []
@@ -46,22 +49,31 @@ class Layer():
         else:
             return None
 
+    def __get_id(self, network):
+        return len(network.layers)
+
     def __line_between_two_neurons(self, neuron1, neuron2, weight):
         angle = atan((neuron2.x - neuron1.x) / float(neuron2.y - neuron1.y))
         x_adjustment = self.neuron_radius * sin(angle)
         y_adjustment = self.neuron_radius * cos(angle)
         line = pyplot.Line2D((neuron1.x - x_adjustment, neuron2.x + x_adjustment),
                              (neuron1.y - y_adjustment, neuron2.y + y_adjustment), linewidth=weight)
-        print(neuron1.x, neuron1.y, neuron2.x, neuron2.y, weight)
+        print(neuron1.x, neuron1.y, neuron2.x, neuron2.y, " Weight is: ", weight)
         pyplot.gca().add_line(line)
 
     def draw(self, layerType=0):
-        for neuron in self.neurons:
+        weights = self.weights
+        weight_index = self.layer_id - 1
+        sample_weights = [[[1, 1, 1], [1, 1, 1], [3, 3, 3]], [[1, 1, 1], [2, 4, 2], [1, 1, 1]]]
+        for neuron, layer_weight in zip(self.neurons, sample_weights[weight_index]):
+            print("Printing lengths", neuron, layer_weight)
+            print("We are in layer", self.layer_id)
+            print("Weight index is", weight_index)
+            print("Weights to be drawn are", sample_weights[weight_index])
             neuron.draw(self.neuron_radius)
-            sample_weights = [1, 2, 3, 4, 5, 6]
             if self.previous_layer:
-                for previous_layer_neuron, weight in zip(self.previous_layer.neurons, sample_weights):
-                    print(type(neuron))
+                for previous_layer_neuron, weight in zip(self.previous_layer.neurons, layer_weight):
+                    print("drawing a line with weight", weight)
                     self.__line_between_two_neurons(neuron, previous_layer_neuron, float(weight))
         # write Text
         x_text = self.number_of_neurons_in_widest_layer * self.horizontal_distance_between_neurons
@@ -74,13 +86,14 @@ class Layer():
 
 
 class NeuralNetwork():
-    def __init__(self, number_of_neurons_in_widest_layer):
+    def __init__(self, number_of_neurons_in_widest_layer, weights):
         self.number_of_neurons_in_widest_layer = number_of_neurons_in_widest_layer
+        self.weights = weights
         self.layers = []
         self.layertype = 0
 
-    def add_layer(self, number_of_neurons):
-        layer = Layer(self, number_of_neurons, self.number_of_neurons_in_widest_layer)
+    def add_layer(self, number_of_neurons, weights):
+        layer = Layer(self, number_of_neurons, self.number_of_neurons_in_widest_layer, self.weights)
         self.layers.append(layer)
 
     def draw(self):
@@ -94,7 +107,6 @@ class NeuralNetwork():
         pyplot.axis('off')
         pyplot.suptitle('Press enter to start training', fontsize=10)
         pyplot.title('Neural Network architecture', fontsize=15)
-
         pyplot.draw()
         pyplot.pause(1)  # <-------
         input("<Hit Enter To Close>")
@@ -102,12 +114,25 @@ class NeuralNetwork():
 
 
 class DrawNN():
-    def __init__(self, neural_network):
+    def __init__(self, neural_network, weights):
         self.neural_network = neural_network
+        self.weights = weights
 
     def draw(self):
         widest_layer = max(self.neural_network)
-        network = NeuralNetwork(widest_layer)
+        network = NeuralNetwork(widest_layer, weights)
         for l in self.neural_network:
             network.add_layer(l)
         network.draw()
+
+    def give_network():
+        widest_layer = max(self.neural_network)
+        network = NeuralNetwork(widest_layer)
+        return network
+
+
+# b = [3, 3, 3]
+# NN = DrawNN(b)
+# NN.draw()
+
+# NN.give_network()
