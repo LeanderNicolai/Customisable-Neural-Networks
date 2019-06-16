@@ -75,11 +75,6 @@ class Layer():
         print("\n\n")
         if self.previous_layer:
             for neuron, layer_weight in zip(self.neurons, weights[weight_index]):
-                # layer_weight_list = layer_weight.tolist()
-                # print("Printing lengths", neuron, layer_weight)
-                # print("We are in layer", self.layer_id)
-                # print("Weight index is", weight_index)
-                # print("Weights to be drawn are", layer_weight)
                 neuron.draw(self.neuron_radius)
                 if self.previous_layer:
                     for previous_layer_neuron, weight in zip(self.previous_layer.neurons, layer_weight):
@@ -121,9 +116,9 @@ class NeuralNetwork():
         pyplot.axis('off')
         pyplot.title('Neural Network architecture', fontsize=15)
         pyplot.draw()
-        pyplot.pause(1)  # <-------
-        input("<Hit Enter To Close>")
-        pyplot.close(fig)
+        # pyplot.pause(0)  # <-------
+        # input("<Hit Enter To Close>")
+        return fig
 
 
 class DrawNN():
@@ -139,4 +134,5 @@ class DrawNN():
         network = NeuralNetwork(widest_layer, self.weights)
         for l in self.neural_network:
             network.add_layer(l, self.weights)
-        network.draw()
+        fig = network.draw()
+        return fig
