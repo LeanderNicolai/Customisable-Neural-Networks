@@ -11,6 +11,7 @@ import seaborn as sns
 from sklearn.metrics import accuracy_score
 import sklearn
 import start_nvs as NVStart
+import weighted as WV
 from keras.datasets import mnist
 
 
@@ -52,6 +53,8 @@ def KDP(ypred, i, X, desc_loss, acc):
     zero_y_two = X[:, 0][idx_0]
     one_y_one = X[:, 1][idx_1]
     one_y_two = X[:, 1][idx_0]
+    print("zero_y_one shape is ", zero_y_one.shape)
+    print("zero_y_two shape is ", zero_y_two.shape)
     plt.figure()
     sns.kdeplot(zero_y_one, one_y_one, shade=False, kde=True)
     sns.kdeplot(zero_y_two, one_y_two, shade=False, kde=True)
@@ -90,9 +93,12 @@ def shape_creation(X, y):
         hw_shape = (layer_nc[i], layer_nc[i-1])
         weight_shapes.append(hw_shape)
         i = i + 1
-    network = NVStart.DrawNN(layer_nc)
-    network.draw()
-    print("Drawing the Network Now")
+    if max(layer_nc) < 100:
+        network = NVStart.DrawNN(layer_nc)
+        network.draw()
+        print("Drawing the Network Now")
+    else:
+        print("Network is too large to visualize")
     return weight_shapes, layer_nc
 
 
@@ -169,10 +175,10 @@ def create_network(X, y):
     y = ytrue
     weight_shapes, layer_nc = shape_creation(X, y)
     all_weights_1, bias_shapes = initialize_weights(weight_shapes)
-    return all_weights_1, bias_shapes, X_T, ytrue
+    return all_weights_1, bias_shapes, X_T, ytrue, layer_nc
 
 
-def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FLAG):
+def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FLAG, layer_nc):
     images = []
     cwd = os.getcwd()
     for i in range(epochs):
@@ -199,6 +205,10 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
             file_loc = cwd + '/pngs/' + filename
             plt.savefig(filename)
             images.append(imageio.imread(filename))
+        weights = all_weights_1
+        w2 = weights[1:]
+        network = WV.DrawNN(layer_nc, w2)
+        network.draw()
     if KDP_FLAG:
         time = str(datetime.datetime.now())
         file_ext = time[-2:]
@@ -214,9 +224,9 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
 def create_train(X, ytrue, choice, KDP_FLAG):
     epochs = int(input('How many iterations would you like to run?    '))
     X_T = X.T
-    all_weights_1, bias_shapes, X_T, ytrue = create_network(X, ytrue)
+    all_weights_1, bias_shapes, X_T, ytrue, layer_nc = create_network(X, ytrue)
     weights, biases = train_network(epochs, X_T, ytrue, all_weights_1,
-                                    bias_shapes, choice, KDP_FLAG)
+                                    bias_shapes, choice, KDP_FLAG, layer_nc)
 
     return weights, biases, X_T
 
@@ -235,5 +245,3 @@ X, ytrue, Xtest, ytest, choice, KDP_FLAG = choose_dataset()
 weights, biases, X_T = create_train(X, ytrue, choice, KDP_FLAG)
 
 outputs, ypred_int = predict(X_T, weights, biases)
-
-print("Final Predictions are: ", ypred_int)
