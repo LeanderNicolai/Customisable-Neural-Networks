@@ -218,7 +218,7 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
         file_ext = time[-2:]
         imageio.mimsave(f'output{file_ext}.gif', images, fps=15)
         print(f"Kernel Density Plot saved as: output{file_ext}.gif")
-    imageio.mimsave(f'dynamic_train_13.gif', dynamic, fps=15)
+    imageio.mimsave(f'dynamic_train_14.gif', dynamic, fps=15)
     for file in os.listdir(cwd):
         if file.endswith(".png"):
             print("removed", file)
