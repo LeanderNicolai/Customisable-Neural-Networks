@@ -208,7 +208,7 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
             images.append(imageio.imread(filename))
         weights = all_weights_1
         w2 = weights[1:]
-        network = WV.DrawNN(layer_nc, w2)
+        network = WV.DrawNN(layer_nc, w2, new_biases)
         fig = network.draw()
         fname = f"dynamic_plot_{i}.png"
         plt.savefig(fname)
@@ -218,7 +218,7 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
         file_ext = time[-2:]
         imageio.mimsave(f'output{file_ext}.gif', images, fps=15)
         print(f"Kernel Density Plot saved as: output{file_ext}.gif")
-    imageio.mimsave(f'dynamic_train_3.gif', dynamic, fps=15)
+    imageio.mimsave(f'dynamic_train_13.gif', dynamic, fps=15)
     for file in os.listdir(cwd):
         if file.endswith(".png"):
             print("removed", file)
