@@ -7,7 +7,9 @@ The program runs mainly on NumPy and the network is built from scratch, using th
 
 This will look something like this:
 
-<img align="center" width="500" src="https://github.com/LeanderNicolai/Customisable_Neural_Networks/blob/master/dynamic_train_v2.gif">     <img align="center" width="300"  src="https://github.com/LeanderNicolai/ArtificialNeuralNetworks/blob/master/KDP.gif">
+<img align="center" width="400" src="https://github.com/LeanderNicolai/Customisable_Neural_Networks/blob/master/NN_Vis.png">     <img align="center" width="400"  src="https://github.com/LeanderNicolai/ArtificialNeuralNetworks/blob/master/KDP.gif">
+
+<img align="center" width="800"  src="https://github.com/LeanderNicolai/Customisable_Neural_Networks/blob/master/dynamic_train_v2.gif">
 
 So far the layers in the network are only dense layers, using a Sigmoid as an activation function. Convolutional Layers and a ReLu activation function are to be implemented in the future.
 
