@@ -123,12 +123,13 @@ class Layer():
 
 
 class NeuralNetwork():
-    def __init__(self, number_of_neurons_in_widest_layer, weights, bias):
+    def __init__(self, number_of_neurons_in_widest_layer, weights, bias, epoch):
         self.number_of_neurons_in_widest_layer = number_of_neurons_in_widest_layer
         self.weights = weights
         self.layers = []
         self.layertype = 0
         self.bias = bias
+        self.epoch = epoch
 
     def add_layer(self, number_of_neurons, weights):
         layer = Layer(self, number_of_neurons,
@@ -145,6 +146,7 @@ class NeuralNetwork():
         pyplot.axis('scaled')
         pyplot.axis('off')
         pyplot.title('Neural Network architecture', fontsize=15)
+        pyplot.suptitle(f"Training Iteration: {self.epoch}")
         pyplot.draw()
         # pyplot.pause(0)  # <-------
         # input("<Hit Enter To Close>")
@@ -152,14 +154,15 @@ class NeuralNetwork():
 
 
 class DrawNN():
-    def __init__(self, neural_network, weights, bias):
+    def __init__(self, neural_network, weights, bias, epoch):
         self.neural_network = neural_network
         self.weights = weights
         self.bias = bias
+        self.epoch = epoch
 
     def draw(self):
         widest_layer = max(self.neural_network)
-        network = NeuralNetwork(widest_layer, self.weights, self.bias)
+        network = NeuralNetwork(widest_layer, self.weights, self.bias, self.epoch)
         for l in self.neural_network:
             network.add_layer(l, self.weights)
         fig = network.draw()
