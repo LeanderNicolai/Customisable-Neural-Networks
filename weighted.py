@@ -30,7 +30,7 @@ class Neuron():
             print(f'trying to slice {self.layer_id} and {self.neuron_id}')
             current_bias = bias_list[self.layer_id - 1][self.neuron_id]
             print('the current bias is: ', current_bias)
-        circle = pyplot.Circle((self.x, self.y), radius=neuron_radius, color='b'
+        circle = pyplot.Circle((self.x, self.y), radius=neuron_radius, color='b',
                                fill=False, linewidth=current_bias/3 + 0.2
                                )
         # bc = pyplot.Circle((self.x, self.y), radius=neuron_radius,
