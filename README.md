@@ -31,4 +31,7 @@ So far the layers in the network are only dense layers, using a Sigmoid as an ac
 12. Press enter to start training!
 13. Once you are done training you can make predictions with the weights and biases generated from the training cycle.
 
+
+## Live Demo - Take a look:
+
 <img align="center"  src="https://github.com/LeanderNicolai/Customisable_Neural_Networks/blob/master/NN_Interaction_3.gif">
