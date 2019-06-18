@@ -47,7 +47,7 @@ def choose_dataset():
 
 
 def KDP(ypred, i, X, desc_loss, acc):
-    '''Function reposibible for creating a Kernel Density Plot of the training Cycle''''
+    '''Function reposibible for creating a Kernel Density Plot of the training Cycle'''
     idx_1 = np.where(ypred == 1)
     idx_0 = np.where(ypred == 0)
     zero_y_one = X[:, 0][idx_1]
@@ -238,7 +238,9 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
         file_ext = time[-2:]
         imageio.mimsave(f'output{file_ext}.gif', images, fps=15)
         print(f"Kernel Density Plot saved as: output{file_ext}.gif")
-    imageio.mimsave(f'dynamic_train_18.gif', dynamic, fps=30)
+    time = str(datetime.datetime.now())
+    file_ext = time[-2:]
+    imageio.mimsave(f'dynamic_train_{file_ext}.gif', dynamic, fps=30)
     for file in os.listdir(cwd):
         if file.endswith(".png"):
             print("removed", file)
