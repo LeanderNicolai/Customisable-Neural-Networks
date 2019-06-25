@@ -13,6 +13,7 @@ import sklearn
 import start_nvs as NVStart
 import weighted as WV
 from keras.datasets import mnist
+import pandas as pd
 
 
 def choose_dataset():
@@ -34,6 +35,14 @@ def choose_dataset():
             print("KDP Flag set to True")
         else:
             KDP_FLAG = False
+    elif choice == 3:
+        print("You choose option 3")
+        dataset = custom_dataset()
+        num_data = get_numeric(dataset)
+        X, ytrue, Xtest, ytest = split_training(num_data)
+        KDP_FLAG = False
+        print(KDP_FLAG)
+
     else:
         (xtrain, ytrain), (xtest, ytest) = mnist.load_data()
         X = xtrain.reshape(60000, 784)
@@ -44,6 +53,52 @@ def choose_dataset():
         ytest = ytrain[1000:1500]
         KDP_FLAG = False
     return X, ytrue, Xtest, ytest, choice, KDP_FLAG
+
+
+def custom_dataset():
+    cwd = os.getcwd()
+    data_name = input("Please enter the name of the dataset       ")
+    print("data name is", data_name)
+    all_files = os.listdir(cwd)
+    dataset = 'Dummy'
+    possibilities = []
+    for file in all_files:
+        if data_name in file:
+            print(file)
+            possibilities.append(file)
+    for file in possibilities:
+        correct = input(
+            f'Is this the correct dataset file?  {file}  Please enter Y / N          ')
+        c = correct.upper()
+        if c == "Y":
+            dataset = pd.read_csv(file)
+        else:
+            continue
+    return dataset
+
+
+def get_numeric(df):
+    numcols = []
+    for i in range(len(df.columns)):
+        a = df.iloc[0, i]
+        if type(a) == type('str'):
+            print('string found cannot add column to dataset')
+        else:
+            col = df.iloc[:, i].values
+            numcols.append(col)
+    num_data = np.vstack(numcols).T
+    return num_data
+
+
+def split_training(num_data):
+    X = num_data[:, :-1]
+    ytrue = num_data[:, -1]
+    train_items = int(len(X) * 0.8)
+    Xtrain = X[:train_items, :]
+    ytrain = ytrue[:train_items]
+    Xtest = X[train_items:, :]
+    ytest = ytrue[train_items:]
+    return Xtrain, ytrain, Xtest, ytest
 
 
 def KDP(ypred, i, X, desc_loss, acc):
@@ -214,9 +269,10 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
         ypred_int = ypred.round()
         desc_loss = loss(ytrue, ypred).sum()
         print(ypred_int)
-        acc = sklearn.metrics.accuracy_score(ytrue, ypred_int)
-        print('loss is:  ', desc_loss)
-        print('accuracy is:  ', acc)
+        if KDP_FLAG:
+            acc = sklearn.metrics.accuracy_score(ytrue, ypred_int)
+            print('loss is:  ', desc_loss)
+            print('accuracy is:  ', acc)
         X = X_T.T
         print(X.shape)
         print(type(ypred_int))
@@ -241,10 +297,12 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
     time = str(datetime.datetime.now())
     file_ext = time[-2:]
     imageio.mimsave(f'dynamic_train_{file_ext}.gif', dynamic, fps=30)
+
     for file in os.listdir(cwd):
         if file.endswith(".png"):
             print("removed", file)
             os.remove(file)
+    print(f'\n\nsaved gif as: dynamic_train_{file_ext}.gif')
 
     return all_weights_1, bias_shapes
 
@@ -272,6 +330,10 @@ def predict(X_T, all_weights, bias_shapes):
 
 X, ytrue, Xtest, ytest, choice, KDP_FLAG = choose_dataset()
 
+
 weights, biases, X_T = create_train(X, ytrue, choice, KDP_FLAG)
 
 outputs, ypred_int = predict(X_T, weights, biases)
+
+
+print("Predictions are: ", ypred_int)
