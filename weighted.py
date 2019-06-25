@@ -30,13 +30,10 @@ class Neuron():
             print(f'trying to slice {self.layer_id} and {self.neuron_id}')
             current_bias = bias_list[self.layer_id - 1][self.neuron_id]
             print('the current bias is: ', current_bias)
-        circle = pyplot.Circle((self.x, self.y), radius=neuron_radius, color='b',
+        circle = pyplot.Circle((self.x, self.y), radius=neuron_radius, color='r',
                                fill=False, linewidth=current_bias/3 + 0.2
                                )
-        # bc = pyplot.Circle((self.x, self.y), radius=neuron_radius,
-        #                    color='b', fill=True, alpha=1)
         pyplot.gca().add_patch(circle)
-        # pyplot.gca().add_patch(bc)
 
 
 class Layer():
@@ -148,8 +145,6 @@ class NeuralNetwork():
         pyplot.title('Neural Network architecture', fontsize=15)
         pyplot.suptitle(f"Training Iteration: {self.epoch}")
         pyplot.draw()
-        # pyplot.pause(0)  # <-------
-        # input("<Hit Enter To Close>")
         return fig
 
 
