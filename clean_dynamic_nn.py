@@ -21,10 +21,11 @@ def choose_dataset():
 
     For Make Moons:     Press 1
     For MNIST:          Press 2
-    To import your own Dataset: Press 3
+    To import your own Dataset for regression predictions: Press 3
 
     '''))
     if choice == 1:
+        REG_FLAG = False
         X, ytrue = make_moons(n_samples=200, noise=0.2, random_state=42)
         Xtest, ytest = make_moons(n_samples=200, noise=0.2, random_state=42)
         make_kde = True
@@ -36,6 +37,7 @@ def choose_dataset():
         else:
             KDP_FLAG = False
     elif choice == 3:
+        REG_FLAG = True
         print("You choose option 3")
         dataset = custom_dataset()
         num_data = get_numeric(dataset)
@@ -44,6 +46,7 @@ def choose_dataset():
         print(KDP_FLAG)
 
     else:
+        REG_FLAG = False
         (xtrain, ytrain), (xtest, ytest) = mnist.load_data()
         X = xtrain.reshape(60000, 784)
         X = X[:1000, :]
@@ -52,7 +55,7 @@ def choose_dataset():
         Xtest = Xtest[1000:1500, :]
         ytest = ytrain[1000:1500]
         KDP_FLAG = False
-    return X, ytrue, Xtest, ytest, choice, KDP_FLAG
+    return X, ytrue, Xtest, ytest, choice, KDP_FLAG, REG_FLAG
 
 
 def custom_dataset():
@@ -314,26 +317,28 @@ def create_train(X, ytrue, choice, KDP_FLAG):
     all_weights_1, bias_shapes, X_T, ytrue, layer_nc = create_network(X, ytrue)
     weights, biases = train_network(epochs, X_T, ytrue, all_weights_1,
                                     bias_shapes, choice, KDP_FLAG, layer_nc)
-
     return weights, biases, X_T
 
 
-def predict(X_T, all_weights, bias_shapes):
+def predict(X_T, all_weights, bias_shapes, ytrue, REG_FLAG):
     '''Function that makes predictions on the weights passed in from training'''
     outputs = feed_forward(X_T, all_weights, bias_shapes)
     outputs.reverse()
     to_shape = outputs[0].T.shape[0]
     ypred = outputs[0].T.reshape(to_shape)
     ypred_int = ypred.round()
+    if REG_FLAG:
+        y_reg = ytrue.max() * ypred
+        ypred_int = y_reg.astype(int)
     return outputs, ypred_int
 
 
-X, ytrue, Xtest, ytest, choice, KDP_FLAG = choose_dataset()
+X, ytrue, Xtest, ytest, choice, KDP_FLAG, REG_FLAG = choose_dataset()
 
 
 weights, biases, X_T = create_train(X, ytrue, choice, KDP_FLAG)
 
-outputs, ypred_int = predict(X_T, weights, biases)
+outputs, ypred_int = predict(X_T, weights, biases, ytrue, REG_FLAG)
 
 
 print("Predictions are: ", ypred_int)
