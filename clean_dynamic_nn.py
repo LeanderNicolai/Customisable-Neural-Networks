@@ -14,6 +14,7 @@ import start_nvs as NVStart
 import weighted as WV
 from keras.datasets import mnist
 import pandas as pd
+from sklearn.preprocessing import MinMaxScaler
 
 
 def choose_dataset():
@@ -40,7 +41,7 @@ def choose_dataset():
         REG_FLAG = True
         print("You choose option 3")
         dataset = custom_dataset()
-        num_data = get_numeric(dataset)
+        num_data, scaled_data = get_numeric(dataset)
         X, ytrue, Xtest, ytest = split_training(num_data)
         KDP_FLAG = False
         print(KDP_FLAG)
@@ -81,6 +82,7 @@ def custom_dataset():
 
 
 def get_numeric(df):
+    scaler = MinMaxScaler()
     numcols = []
     for i in range(len(df.columns)):
         a = df.iloc[0, i]
@@ -90,7 +92,9 @@ def get_numeric(df):
             col = df.iloc[:, i].values
             numcols.append(col)
     num_data = np.vstack(numcols).T
-    return num_data
+    scaled_data = scaler.fit_transform(num_data)
+    num_d_slice = num_data[:, :-2]
+    return num_d_slice, scaled_data
 
 
 def split_training(num_data):
@@ -139,7 +143,7 @@ def shape_creation(X, y):
         final_nc = int(input('How many nodes should the output layer have?    '))
         layer_nc.append(final_nc)
     else:
-        layer_nc = [4, 2, 5, 3]
+        layer_nc = [input_layer_nc] + [2, 5, 3]
         final_nc = int(input('How many nodes should the output layer have?    '))
         layer_nc.append(final_nc)
     i = 0
@@ -193,8 +197,12 @@ def feed_forward(X_T, all_weights, bias_shapes):
     return outputs
 
 
-def bp_layer_one(out_rev, ytrue, gradients, new_biases, upd_w, LR, bias_rev, weights_rev):
+def bp_layer_one(out_rev, ytrue, gradients, new_biases, upd_w, LR, bias_rev, weights_rev, REG_FLAG):
     '''Back propagation function for the output layer'''
+    if REG_FLAG:
+        ytrue = scale_y(ytrue)
+        rs_by = (1, ytrue.shape[0])
+        ytrue = ytrue.reshape(rs_by)
     error = (out_rev[0] - ytrue) * loss(ytrue, out_rev[0])
     grad_y = out_rev[0] * error
     gradients.append(grad_y)
@@ -222,7 +230,17 @@ def bp_rest(weights_rev, gradients, out_rev, LR, bias_rev, new_biases, upd_w, i)
     return upd_w, new_biases
 
 
-def back_prop(outputs, ytrue, all_weights, bias_shapes):
+def scale_y(ytrue):
+    ytrue = np.array(ytrue)
+    ytrue = ytrue.astype('float')
+    rs_val = ytrue.shape[0]
+    y = ytrue.reshape((rs_val, 1))
+    scaler = MinMaxScaler()
+    y_scaled = scaler.fit_transform(y)
+    return y_scaled
+
+
+def back_prop(outputs, ytrue, all_weights, bias_shapes, REG_FLAG):
     '''Back propagation loop function, returns updated weights and biases'''
     i = 0
     upd_w = []
@@ -238,7 +256,7 @@ def back_prop(outputs, ytrue, all_weights, bias_shapes):
     for i in range(len(out_rev) - 1):
         if i == 0:
             upd_w, gradient, new_biases = bp_layer_one(
-                out_rev, ytrue, gradients, new_biases, upd_w, LR, bias_rev, weights_rev)
+                out_rev, ytrue, gradients, new_biases, upd_w, LR, bias_rev, weights_rev, REG_FLAG)
         else:
             upd_w, new_biases = bp_rest(
                 weights_rev, gradients, out_rev, LR, bias_rev, new_biases, upd_w, i)
@@ -255,7 +273,7 @@ def create_network(X, y):
     return all_weights_1, bias_shapes, X_T, ytrue, layer_nc
 
 
-def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FLAG, layer_nc):
+def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FLAG, layer_nc, REG_FLAG):
     ''' Training Loop function that also dynamically visualises for each training cycle'''
     images = []
     dynamic = []
@@ -264,7 +282,7 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
         outputs = feed_forward(X_T, all_weights_1, bias_shapes)
         outputs_cp = outputs
         all_weights_1, bias_shapes, new_biases = back_prop(
-            outputs, ytrue, all_weights_1, bias_shapes)
+            outputs, ytrue, all_weights_1, bias_shapes, REG_FLAG)
         bias_shapes[0] = new_biases[0]
         all_weights_1.reverse()
         to_shape = outputs[0].T.shape[0]
@@ -310,13 +328,13 @@ def train_network(epochs, X_T, ytrue, all_weights_1, bias_shapes, choice, KDP_FL
     return all_weights_1, bias_shapes
 
 
-def create_train(X, ytrue, choice, KDP_FLAG):
+def create_train(X, ytrue, choice, KDP_FLAG, REG_FLAG):
     ''' Combination function that creates the network and trains it, returns the weights and biases after training'''
     epochs = int(input('How many iterations would you like to run?    '))
     X_T = X.T
     all_weights_1, bias_shapes, X_T, ytrue, layer_nc = create_network(X, ytrue)
     weights, biases = train_network(epochs, X_T, ytrue, all_weights_1,
-                                    bias_shapes, choice, KDP_FLAG, layer_nc)
+                                    bias_shapes, choice, KDP_FLAG, layer_nc, REG_FLAG)
     return weights, biases, X_T
 
 
@@ -336,7 +354,7 @@ def predict(X_T, all_weights, bias_shapes, ytrue, REG_FLAG):
 X, ytrue, Xtest, ytest, choice, KDP_FLAG, REG_FLAG = choose_dataset()
 
 
-weights, biases, X_T = create_train(X, ytrue, choice, KDP_FLAG)
+weights, biases, X_T = create_train(X, ytrue, choice, KDP_FLAG, REG_FLAG)
 
 outputs, ypred_int = predict(X_T, weights, biases, ytrue, REG_FLAG)
 
